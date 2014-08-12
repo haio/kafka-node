@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=640">
+
+    <link rel="stylesheet" href="stylesheets/core.css" media="screen">
+    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+
+    <script type="text/javascript" src="javascripts/modernizr.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('#main_content').headsmart()
+      })
+    </script>
+    <title>Kafka-node by haio</title>
+  </head>
+
+  <body>
+    <a id="forkme_banner" href="https://github.com/haio/kafka-node">View on GitHub</a>
+    <div class="shell">
+
+      <header>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <h1>Kafka-node</h1>
+            <h2>Node.js client for Apache Kafka 0.8</h2>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+      </header>
+
+      <section id="downloads">
+        <span class="inner">
+          <a href="https://github.com/haio/kafka-node/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/haio/kafka-node/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+        </span>
+      </section>
+
+
+      <span class="banner-fix"></span>
+
+
+      <section id="main_content">
+        <h1>
+<a name="kafka-node" class="anchor" href="#kafka-node"><span class="octicon octicon-link"></span></a>Kafka-node</h1>
+
+<p>Kafka-node is a nodejs client with Zookeeper integration for apache Kafka. It only supports the latest version of Kafka 0.8 which is still under development, so this module
+is <em>not production ready</em> so far.</p>
+
+<p>The Zookeeper integration does the following jobs:</p>
+
+<ul>
+<li>Loads broker metadata from Zookeeper before we can communicate with the Kafka server</li>
+<li>Watches broker state, if broker changes, the client will refresh broker and topic metadata stored in the client</li>
+</ul><h1>
+<a name="install-kafka" class="anchor" href="#install-kafka"><span class="octicon octicon-link"></span></a>Install Kafka</h1>
+
+<p>Follow the <a href="https://cwiki.apache.org/KAFKA/kafka-08-quick-start.html">instructions</a> on the Kafka wiki to build Kafka 0.8 and get a test broker up and running.</p>
+
+<h1>
+<a name="api" class="anchor" href="#api"><span class="octicon octicon-link"></span></a>API</h1>
+
+<h2>
+<a name="client" class="anchor" href="#client"><span class="octicon octicon-link"></span></a>Client</h2>
+
+<h3>
+<a name="clientconnectionstring-clientid-zkoptions" class="anchor" href="#clientconnectionstring-clientid-zkoptions"><span class="octicon octicon-link"></span></a>Client(connectionString, clientId, [zkOptions])</h3>
+
+<ul>
+<li>
+<code>connectionString</code>: Zookeeper connection string, default <code>localhost:2181/kafka0.8</code>
+</li>
+<li>
+<code>clientId</code>: This is a user supplied identifier for the client application, default <code>kafka-node-client</code>
+</li>
+<li>
+<code>zkOptions</code>: <strong>Object</strong>, Zookeeper options, see <a href="https://github.com/alexguan/node-zookeeper-client#client-createclientconnectionstring-options">node-zookeeper-client</a>
+</li>
+</ul><h3>
+<a name="closecb" class="anchor" href="#closecb"><span class="octicon octicon-link"></span></a>close(cb)</h3>
+
+<p>Closes the connection to Zookeeper and the brokers so that the node process can exit gracefully.</p>
+
+<ul>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><h2>
+<a name="producer" class="anchor" href="#producer"><span class="octicon octicon-link"></span></a>Producer</h2>
+
+<h3>
+<a name="producerclient" class="anchor" href="#producerclient"><span class="octicon octicon-link"></span></a>Producer(client)</h3>
+
+<ul>
+<li>
+<code>client</code>: client which keeps a connection with the Kafka server.</li>
+</ul><div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">Producer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Producer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Producer</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="sendpayloads-cb" class="anchor" href="#sendpayloads-cb"><span class="octicon octicon-link"></span></a>send(payloads, cb)</h3>
+
+<ul>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>ProduceRequest</code>, <code>ProduceRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">messages</span><span class="o">:</span> <span class="p">[</span><span class="s1">'message body'</span><span class="p">],</span><span class="c1">// multi messages should be a array, single message can be just a string</span>
+   <span class="nx">partition</span><span class="o">:</span> <span class="s1">'0'</span><span class="p">,</span> <span class="c1">//default 0</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">Producer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Producer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Producer</span><span class="p">(</span><span class="nx">client</span><span class="p">),</span>
+    <span class="nx">payloads</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topic1'</span><span class="p">,</span> <span class="nx">messages</span><span class="o">:</span> <span class="s1">'hi'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">0</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topic2'</span><span class="p">,</span> <span class="nx">messages</span><span class="o">:</span> <span class="p">[</span><span class="s1">'hello'</span><span class="p">,</span> <span class="s1">'world'</span><span class="p">]</span> <span class="p">}</span>
+    <span class="p">];</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'ready'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">producer</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">payloads</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="createtopicstopics-async-cb" class="anchor" href="#createtopicstopics-async-cb"><span class="octicon octicon-link"></span></a>createTopics(topics, async, cb)</h3>
+
+<p>This method is used to create topics on the Kafka server. It only work when <code>auto.create.topics.enable</code>, on the Kafka server, is set to true. Our client simply sends a metadata request to the server which will auto create topics. When <code>async</code> is set to false, this method does not return until all topics are created, otherwise it returns immediately.</p>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>,array of topics</li>
+<li>
+<code>async</code>: <strong>Boolean</strong>,async or sync</li>
+<li>
+<code>cb</code>: <strong>Function</strong>,the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">Producer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Producer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Producer</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+<span class="c1">// Create topics sync</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">,</span><span class="s1">'t1'</span><span class="p">],</span> <span class="kc">false</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="c1">// Create topics async</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">],</span> <span class="kc">true</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{});</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{});</span><span class="c1">// Simply omit 2nd arg</span>
+</pre></div>
+
+<h2>
+<a name="highlevelproducer" class="anchor" href="#highlevelproducer"><span class="octicon octicon-link"></span></a>HighLevelProducer</h2>
+
+<h3>
+<a name="highlevelproducerclient" class="anchor" href="#highlevelproducerclient"><span class="octicon octicon-link"></span></a>HighLevelProducer(client)</h3>
+
+<ul>
+<li>
+<code>client</code>: client which keeps a connection with the Kafka server. Round-robins produce requests to the available topic partitions</li>
+</ul><div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">HighLevelProducer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">HighLevelProducer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HighLevelProducer</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="sendpayloads-cb-1" class="anchor" href="#sendpayloads-cb-1"><span class="octicon octicon-link"></span></a>send(payloads, cb)</h3>
+
+<ul>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>ProduceRequest</code>, <code>ProduceRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">messages</span><span class="o">:</span> <span class="p">[</span><span class="s1">'message body'</span><span class="p">],</span><span class="c1">// multi messages should be a array, single message can be just a string</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">HighLevelProducer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">HighLevelProducer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HighLevelProducer</span><span class="p">(</span><span class="nx">client</span><span class="p">),</span>
+    <span class="nx">payloads</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topic1'</span><span class="p">,</span> <span class="nx">messages</span><span class="o">:</span> <span class="s1">'hi'</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topic2'</span><span class="p">,</span> <span class="nx">messages</span><span class="o">:</span> <span class="p">[</span><span class="s1">'hello'</span><span class="p">,</span> <span class="s1">'world'</span><span class="p">]</span> <span class="p">}</span>
+    <span class="p">];</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'ready'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">producer</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">payloads</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="createtopicstopics-async-cb-1" class="anchor" href="#createtopicstopics-async-cb-1"><span class="octicon octicon-link"></span></a>createTopics(topics, async, cb)</h3>
+
+<p>This method is used to create topics on the Kafka server. It only work when <code>auto.create.topics.enable</code>, on the Kafka server, is set to true. Our client simply sends a metadata request to the server which will auto create topics. When <code>async</code> is set to false, this method does not return until all topics are created, otherwise it returns immediately.</p>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>,array of topics</li>
+<li>
+<code>async</code>: <strong>Boolean</strong>,async or sync</li>
+<li>
+<code>cb</code>: <strong>Function</strong>,the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">HighLevelProducer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">HighLevelProducer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">producer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HighLevelProducer</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+<span class="c1">// Create topics sync</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">,</span><span class="s1">'t1'</span><span class="p">],</span> <span class="kc">false</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="c1">// Create topics async</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">],</span> <span class="kc">true</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{});</span>
+<span class="nx">producer</span><span class="p">.</span><span class="nx">createTopics</span><span class="p">([</span><span class="s1">'t'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{});</span><span class="c1">// Simply omit 2nd arg</span>
+</pre></div>
+
+<h2>
+<a name="consumer" class="anchor" href="#consumer"><span class="octicon octicon-link"></span></a>Consumer</h2>
+
+<h3>
+<a name="consumerclient-payloads-options" class="anchor" href="#consumerclient-payloads-options"><span class="octicon octicon-link"></span></a>Consumer(client, payloads, options)</h3>
+
+<ul>
+<li>
+<code>client</code>: client which keeps a connection with the Kafka server.</li>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>FetchRequest</code>, <code>FetchRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">offset</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">//default 0</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<code>options</code>: options for consumer,</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+    <span class="nx">groupId</span><span class="o">:</span> <span class="s1">'kafka-node-group'</span><span class="p">,</span><span class="c1">//consumer group id, deafult `kafka-node-group`</span>
+    <span class="c1">// Auto commit config </span>
+    <span class="nx">autoCommit</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">autoCommitIntervalMs</span><span class="o">:</span> <span class="mi">5000</span><span class="p">,</span>
+    <span class="c1">// The max wait time is the maximum amount of time in milliseconds to block waiting if insufficient data is available at the time the request is issued, default 100ms</span>
+    <span class="nx">fetchMaxWaitMs</span><span class="o">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="c1">// This is the minimum number of bytes of messages that must be available to give a response, default 1 byte</span>
+    <span class="nx">fetchMinBytes</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="c1">// The maximum bytes to include in the message set for this partition. This helps bound the size of the response.</span>
+    <span class="nx">fetchMaxBytes</span><span class="o">:</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span> 
+    <span class="c1">// If set true, consumer will fetch message from the given offset in the payloads </span>
+    <span class="nx">fromOffset</span><span class="o">:</span> <span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">Consumer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Consumer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">consumer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Consumer</span><span class="p">(</span>
+        <span class="nx">client</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">0</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t1'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="p">{</span>
+            <span class="nx">autoCommit</span><span class="o">:</span> <span class="kc">false</span>
+        <span class="p">}</span>
+    <span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="onmessage-onmessage" class="anchor" href="#onmessage-onmessage"><span class="octicon octicon-link"></span></a>on('message', onMessage);</h3>
+
+<p>By default, we will consume messages from the last committed offset of the current group</p>
+
+<ul>
+<li>
+<code>onMessage</code>: <strong>Function</strong>, callback when new message comes</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'message'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="onerror-function-err-" class="anchor" href="#onerror-function-err-"><span class="octicon octicon-link"></span></a>on('error', function (err) {})</h3>
+
+<h3>
+<a name="onoffsetoutofrange-function-err-" class="anchor" href="#onoffsetoutofrange-function-err-"><span class="octicon octicon-link"></span></a>on('offsetOutOfRange', function (err) {})</h3>
+
+<h3>
+<a name="addtopicstopics-cb" class="anchor" href="#addtopicstopics-cb"><span class="octicon octicon-link"></span></a>addTopics(topics, cb)</h3>
+
+<p>Add topics to current consumer, if any topic to be added not exists, return error</p>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>, array of topics to add</li>
+<li>
+<code>cb</code>: <strong>Function</strong>,the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">addTopics</span><span class="p">([</span><span class="s1">'t1'</span><span class="p">,</span> <span class="s1">'t2'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">added</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="removetopicstopics-cb" class="anchor" href="#removetopicstopics-cb"><span class="octicon octicon-link"></span></a>removeTopics(topics, cb)</h3>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>, array of topics to remove </li>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">removeTopics</span><span class="p">([</span><span class="s1">'t1'</span><span class="p">,</span> <span class="s1">'t2'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">removed</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="commitcb" class="anchor" href="#commitcb"><span class="octicon octicon-link"></span></a>commit(cb)</h3>
+
+<p>Commit offset of the current topics manually, this method should be called when a consumer leaves</p>
+
+<ul>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="setoffsettopic-partition-offset" class="anchor" href="#setoffsettopic-partition-offset"><span class="octicon octicon-link"></span></a>setOffset(topic, partition, offset)</h3>
+
+<p>Set offset of the given topic</p>
+
+<ul>
+<li><p><code>topic</code>: <strong>String</strong></p></li>
+<li><p><code>partition</code>: <strong>Number</strong></p></li>
+<li><p><code>offset</code>: <strong>Number</strong></p></li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">setOffset</span><span class="p">(</span><span class="s1">'topic'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span> 
+</pre></div>
+
+<h3>
+<a name="closeforce-cb" class="anchor" href="#closeforce-cb"><span class="octicon octicon-link"></span></a>close(force, cb)</h3>
+
+<ul>
+<li>
+<code>force</code>: <strong>Boolean</strong>, if set true, it force commit current offset before close, default false</li>
+</ul><p>Example</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span> <span class="nx">cb</span><span class="p">);</span>
+<span class="nx">consuemr</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="nx">cb</span><span class="p">);</span> <span class="c1">//force is force</span>
+</pre></div>
+
+<h2>
+<a name="highlevelconsumer" class="anchor" href="#highlevelconsumer"><span class="octicon octicon-link"></span></a>HighLevelConsumer</h2>
+
+<h3>
+<a name="highlevelconsumerclient-payloads-options" class="anchor" href="#highlevelconsumerclient-payloads-options"><span class="octicon octicon-link"></span></a>HighLevelConsumer(client, payloads, options)</h3>
+
+<ul>
+<li>
+<code>client</code>: client which keeps a connection with the Kafka server.</li>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>FetchRequest</code>, <code>FetchRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<code>options</code>: options for consumer,</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+    <span class="nx">groupId</span><span class="o">:</span> <span class="s1">'kafka-node-group'</span><span class="p">,</span><span class="c1">//consumer group id, deafult `kafka-node-group`</span>
+    <span class="c1">// Auto commit config</span>
+    <span class="nx">autoCommitIntervalMs</span><span class="o">:</span> <span class="mi">5000</span><span class="p">,</span>
+    <span class="c1">// The max wait time is the maximum amount of time in milliseconds to block waiting if insufficient data is available at the time the request is issued, default 100ms</span>
+    <span class="nx">fetchMaxWaitMs</span><span class="o">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="c1">// This is the minimum number of bytes of messages that must be available to give a response, default 1 byte</span>
+    <span class="nx">fetchMinBytes</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="c1">// The maximum bytes to include in the message set for this partition. This helps bound the size of the response.</span>
+    <span class="nx">fetchMaxBytes</span><span class="o">:</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="c1">// If set true, consumer will fetch message from the given offset in the payloads</span>
+    <span class="nx">fromOffset</span><span class="o">:</span> <span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">HighLevelConsumer</span> <span class="o">=</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">HighLevelConsumer</span><span class="p">,</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">consumer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HighLevelConsumer</span><span class="p">(</span>
+        <span class="nx">client</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t'</span> <span class="p">},</span> <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t1'</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="p">{</span>
+            <span class="nx">groupId</span><span class="o">:</span> <span class="s1">'my-group'</span>
+        <span class="p">}</span>
+    <span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="onmessage-onmessage-1" class="anchor" href="#onmessage-onmessage-1"><span class="octicon octicon-link"></span></a>on('message', onMessage);</h3>
+
+<p>By default, we will consume messages from the last committed offset of the current group</p>
+
+<ul>
+<li>
+<code>onMessage</code>: <strong>Function</strong>, callback when new message comes</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'message'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="onerror-function-err--1" class="anchor" href="#onerror-function-err--1"><span class="octicon octicon-link"></span></a>on('error', function (err) {})</h3>
+
+<h3>
+<a name="onoffsetoutofrange-function-err--1" class="anchor" href="#onoffsetoutofrange-function-err--1"><span class="octicon octicon-link"></span></a>on('offsetOutOfRange', function (err) {})</h3>
+
+<h3>
+<a name="addtopicstopics-cb-1" class="anchor" href="#addtopicstopics-cb-1"><span class="octicon octicon-link"></span></a>addTopics(topics, cb)</h3>
+
+<p>Add topics to current consumer, if any topic to be added not exists, return error</p>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>, array of topics to add</li>
+<li>
+<code>cb</code>: <strong>Function</strong>,the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">addTopics</span><span class="p">([</span><span class="s1">'t1'</span><span class="p">,</span> <span class="s1">'t2'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">added</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="removetopicstopics-cb-1" class="anchor" href="#removetopicstopics-cb-1"><span class="octicon octicon-link"></span></a>removeTopics(topics, cb)</h3>
+
+<ul>
+<li>
+<code>topics</code>: <strong>Array</strong>, array of topics to remove</li>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">removeTopics</span><span class="p">([</span><span class="s1">'t1'</span><span class="p">,</span> <span class="s1">'t2'</span><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">removed</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="commitcb-1" class="anchor" href="#commitcb-1"><span class="octicon octicon-link"></span></a>commit(cb)</h3>
+
+<p>Commit offset of the current topics manually, this method should be called when a consumer leaves</p>
+
+<ul>
+<li>
+<code>cb</code>: <strong>Function</strong>, the callback</li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="setoffsettopic-partition-offset-1" class="anchor" href="#setoffsettopic-partition-offset-1"><span class="octicon octicon-link"></span></a>setOffset(topic, partition, offset)</h3>
+
+<p>Set offset of the given topic</p>
+
+<ul>
+<li><p><code>topic</code>: <strong>String</strong></p></li>
+<li><p><code>partition</code>: <strong>Number</strong></p></li>
+<li><p><code>offset</code>: <strong>Number</strong></p></li>
+</ul><p>Example:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">setOffset</span><span class="p">(</span><span class="s1">'topic'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="closeforce-cb-1" class="anchor" href="#closeforce-cb-1"><span class="octicon octicon-link"></span></a>close(force, cb)</h3>
+
+<ul>
+<li>
+<code>force</code>: <strong>Boolean</strong>, if set true, it force commit current offset before close, default false</li>
+</ul><p>Example</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">consumer</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span> <span class="nx">cb</span><span class="p">);</span>
+<span class="nx">consuemr</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="nx">cb</span><span class="p">);</span> <span class="c1">//force is force</span>
+</pre></div>
+
+<h2>
+<a name="offset" class="anchor" href="#offset"><span class="octicon octicon-link"></span></a>Offset</h2>
+
+<h3>
+<a name="offsetclient" class="anchor" href="#offsetclient"><span class="octicon octicon-link"></span></a>Offset(client)</h3>
+
+<ul>
+<li>
+<code>client</code>: client which keeps a connection with the Kafka server.</li>
+</ul><h3>
+<a name="fetchpayloads-cb" class="anchor" href="#fetchpayloads-cb"><span class="octicon octicon-link"></span></a>fetch(payloads, cb)</h3>
+
+<p>Fetch the available offset of a specify topic-partition</p>
+
+<ul>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>OffsetRequest</code>, <code>OffsetRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">partition</span><span class="o">:</span> <span class="s1">'0'</span><span class="p">,</span> <span class="c1">//default 0</span>
+   <span class="c1">// time:</span>
+   <span class="c1">// Used to ask for all messages before a certain time (ms), default Date.now(),</span>
+   <span class="c1">// Specify -1 to receive the latest offsets and -2 to receive the earliest available offset.</span>
+   <span class="nx">time</span><span class="o">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">(),</span>
+   <span class="nx">maxNum</span><span class="o">:</span> <span class="mi">1</span> <span class="c1">//default 1</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<code>cb</code>: <em>Function</em>, the callback</li>
+</ul><p>Example</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">offset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Offset</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+    <span class="nx">offset</span><span class="p">.</span><span class="nx">fetch</span><span class="p">([</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">time</span><span class="o">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">(),</span> <span class="nx">maxNum</span><span class="o">:</span> <span class="mi">1</span> <span class="p">}</span> 
+    <span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// data</span>
+        <span class="c1">// { 't': { '0': [999] } }</span>
+    <span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="commitgroupid-payloads-cb" class="anchor" href="#commitgroupid-payloads-cb"><span class="octicon octicon-link"></span></a>commit(groupId, payloads, cb)</h3>
+
+<ul>
+<li>
+<code>groupId</code>: consumer group</li>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>OffsetCommitRequest</code>, <code>OffsetCommitRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">partition</span><span class="o">:</span> <span class="s1">'0'</span><span class="p">,</span> <span class="c1">//default 0</span>
+   <span class="nx">offset</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+   <span class="nx">metadata</span><span class="o">:</span> <span class="s1">'m'</span><span class="p">,</span> <span class="c1">//default 'm'</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Example</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">offset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Offset</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+    <span class="nx">offset</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="s1">'groupId'</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">offset</span><span class="o">:</span> <span class="mi">10</span> <span class="p">}</span> 
+    <span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="fetchcommitsgroupid-payloads-cb" class="anchor" href="#fetchcommitsgroupid-payloads-cb"><span class="octicon octicon-link"></span></a>fetchCommits(groupid, payloads, cb)</h3>
+
+<p>Fetch the last committed offset in a topic of a specific consumer group</p>
+
+<ul>
+<li>
+<code>groupId</code>: consumer group</li>
+<li>
+<code>payloads</code>: <strong>Array</strong>,array of <code>OffsetFetchRequest</code>, <code>OffsetFetchRequest</code> is a JSON object like:</li>
+</ul><div class="highlight highlight-js"><pre><span class="p">{</span>
+   <span class="nx">topic</span><span class="o">:</span> <span class="s1">'topicName'</span><span class="p">,</span>
+   <span class="nx">partition</span><span class="o">:</span> <span class="s1">'0'</span> <span class="c1">//default 0</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Example</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">kafka</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kafka-node'</span><span class="p">),</span>
+    <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Client</span><span class="p">(),</span>
+    <span class="nx">offset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">kafka</span><span class="p">.</span><span class="nx">Offset</span><span class="p">(</span><span class="nx">client</span><span class="p">);</span>
+    <span class="nx">offset</span><span class="p">.</span><span class="nx">fetchCommits</span><span class="p">(</span><span class="s1">'groupId'</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nx">topic</span><span class="o">:</span> <span class="s1">'t'</span><span class="p">,</span> <span class="nx">partition</span><span class="o">:</span> <span class="mi">0</span> <span class="p">}</span> 
+    <span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">});</span>
+</pre></div>
+
+<h1>
+<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>Todo</h1>
+
+<ul>
+<li>Compression: gzip &amp; snappy</li>
+</ul><h1>
+<a name="license---mit" class="anchor" href="#license---mit"><span class="octicon octicon-link"></span></a>LICENSE - "MIT"</h1>
+
+<p>Copyright (c) 2013 Sohu.com</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions: </p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p>
+      </section>
+
+      <footer>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <p>this project by <a href="https://github.com/haio">haio</a> can be found on <a href="https://github.com/haio/kafka-node">GitHub</a></p>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+        <span class="octocat"></span>
+      </footer>
+
+    </div>
+
+    
+  </body>
+</html>
